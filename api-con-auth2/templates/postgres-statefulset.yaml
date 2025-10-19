@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:15
+          image: postgres:15 # why postgres 15?
           ports:
           - containerPort: 5432
           env:
@@ -61,7 +61,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-service
+  name: postgres-service #why a postgress service and a postgres-headless?
 spec:
   type: ClusterIP
   ports:

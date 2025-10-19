@@ -1,3 +1,4 @@
+# All comments and functions should be in english, no spanish.
 
 """
 A Flask-based RESTful API with token-based authentication and PostgreSQL integration.
