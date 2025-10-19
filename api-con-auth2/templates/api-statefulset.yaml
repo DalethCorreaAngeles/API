@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: api-con-auth
+spec:
+  serviceName: "api-con-auth-headless"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-con-auth
+  template:
+    metadata:
+      labels:
+        app: api-con-auth
+    spec:
+      containers: 
+        - name: api-con-auth
+          image: api-con-auth:1.3
+          ports:
+            - containerPort: 5000
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_HOST
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-con-auth-service
+spec:
+  type: NodePort
+  selector:
+    app: api-con-auth
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      nodePort: 30000
