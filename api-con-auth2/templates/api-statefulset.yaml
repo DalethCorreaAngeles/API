@@ -1,7 +1,7 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: StatefulSet # why is this a stateful set for the application?
 metadata:
-  name: api-con-auth
+  name: api-con-auth # Let's start using variables here
 spec:
   serviceName: "api-con-auth-headless"
   replicas: 1

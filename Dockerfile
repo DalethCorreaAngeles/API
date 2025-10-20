@@ -1,5 +1,5 @@
-# Imagen base de Python
-FROM python:3.10-slim
+# Imagen base de Python # Comments should be in english, no spanish
+FROM python:3.10-slim # why 3.10? why slim?
 
 
 # Install curl ando other necessary utilities
