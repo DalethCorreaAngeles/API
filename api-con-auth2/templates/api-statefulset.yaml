@@ -1,56 +1,62 @@
 apiVersion: apps/v1
-kind: StatefulSet # why is this a stateful set for the application?
+kind: StatefulSet
 metadata:
-  name: api-con-auth # Let's start using variables here
+  name: {{ include "api-con-auth2.fullname" . }}
+  labels:
+    {{- include "api-con-auth2.labels" . | nindent 4 }}
 spec:
-  serviceName: "api-con-auth-headless"
-  replicas: 1
+  serviceName: {{ include "api-con-auth2.fullname" . }}-headless
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: api-con-auth
+      {{- include "api-con-auth2.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: api-con-auth
+        {{- include "api-con-auth2.selectorLabels" . | nindent 8 }}
     spec:
       containers: 
-        - name: api-con-auth
-          image: api-con-auth:1.3
+        - name: {{ include "api-con-auth2.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           ports:
-            - containerPort: 5000
+            - containerPort: {{ .Values.app.port }}
           env:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: {{ .Values.postgres.secretName }}
                   key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: {{ .Values.postgres.secretName }}
                   key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: {{ .Values.postgres.secretName }}
                   key: POSTGRES_DB
             - name: POSTGRES_HOST
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: {{ .Values.postgres.secretName }}
                   key: POSTGRES_HOST
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: api-con-auth-service
+  name: {{ include "api-con-auth2.fullname" . }}-service
+  labels:
+    {{- include "api-con-auth2.labels" . | nindent 4 }}
 spec:
-  type: NodePort
+  type: {{ .Values.service.type }}
   selector:
-    app: api-con-auth
+    {{- include "api-con-auth2.selectorLabels" . | nindent 4 }}
   ports:
     - protocol: TCP
-      port: 5000
-      targetPort: 5000
-      nodePort: 30000
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
