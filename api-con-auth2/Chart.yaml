@@ -1,8 +1,6 @@
 apiVersion: v2
 name: api-con-auth2
 description: A Helm chart for deploying the API authentication service (api-con-auth2). 
-# Is the description correct?
-# Correct, but this is the preferred, more specific description.
 
 # A chart can be either an 'application' or a 'library' chart.
 #

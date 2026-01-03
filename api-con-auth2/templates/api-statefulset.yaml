@@ -48,7 +48,7 @@ kind: Service
 metadata:
   name: {{ include "api-con-auth2.fullname" . }}-service
   labels:
-    {{- include "api-con-auth2.labels" . | nindent 4 }}
+    {{- include "api-con-auth2.labels" . | nindent 4 }}   
 spec:
   type: {{ .Values.service.type }}
   selector:
