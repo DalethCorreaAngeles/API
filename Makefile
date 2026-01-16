@@ -10,3 +10,4 @@ upgrade:
 
 uninstall:
 	helm uninstall $(APP_NAME)
+	
