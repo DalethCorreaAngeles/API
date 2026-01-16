@@ -1,0 +1,26 @@
+name: Preview per PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+
+jobs:
+  create-preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Create preview environment
+        run: |
+          echo "Create preview environment for PR #${{ github.event.number }}"
+          echo "kubectl apply -f k8s/ --name api-pr-${{ github.event.number }}"
+
+  destroy-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Destroy preview environment
+        run: |
+          echo "Destroy preview environment for PR #${{ github.event.number }}"
+          echo "kubectl delete all -l pr=${{ github.event.number }}"
