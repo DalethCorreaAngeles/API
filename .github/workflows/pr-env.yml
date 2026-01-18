@@ -11,11 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       
-      - name: Create preview environment
+      - name: Create preview environment with Helm 
         run: |
           echo "Create preview environment for PR #${{ github.event.number }}"
-          echo "kubectl apply -f k8s/ --name api-pr-${{ github.event.number }}"
-
+          echo "helm install api-pr-${{ github.event.number }} ./charts --namespace pr-${{ github.event.number }} --create-namespace"
+ 
   destroy-preview:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
@@ -23,4 +23,5 @@ jobs:
       - name: Destroy preview environment
         run: |
           echo "Destroy preview environment for PR #${{ github.event.number }}"
-          echo "kubectl delete all -l pr=${{ github.event.number }}"
+          echo "helm uninstall api-pr-${{ github.event.number }} --namespace pr-${{ github.event.number }}"
+          echo "kubectl delete namespace pr-${{ github.event.number }}"
