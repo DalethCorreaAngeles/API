@@ -10,18 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      
+
+      - name: Install Helm 
+        uses: azure/setup-helm@v4.3.0
+
       - name: Create preview environment with Helm 
         run: |
           echo "Create preview environment for PR #${{ github.event.number }}"
-          echo "helm install api-pr-${{ github.event.number }} ./charts --namespace pr-${{ github.event.number }} --create-namespace"
- 
+          helm upgrade --install api-pr-${{ github.event.number }} ./charts \
+            --namespace pr-${{ github.event.number }} \
+            --create-namespace
+
   destroy-preview:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
+      
+      - name: Install Helm 
+        uses: azure/setup-helm@v4.3.0
+
       - name: Destroy preview environment
         run: |
           echo "Destroy preview environment for PR #${{ github.event.number }}"
-          echo "helm uninstall api-pr-${{ github.event.number }} --namespace pr-${{ github.event.number }}"
-          echo "kubectl delete namespace pr-${{ github.event.number }}"
+          helm uninstall api-pr-${{ github.event.number }} \
+            --namespace pr-${{ github.event.number }} || true
+          kubectl delete namespace pr-${{ github.event.number }} || true
