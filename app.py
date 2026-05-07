@@ -11,6 +11,7 @@ app = Flask(__name__)
 
 TOKEN_VALIDO = "token-secreto"
 
+
 def autenticar():
     """
     check for valid Bearer token in Authorization header
@@ -24,15 +25,17 @@ def autenticar():
     token = auth_header.split(" ")[1]
     return token == TOKEN_VALIDO
 
+
 @app.before_request
 def verificar_token():
     """
-    This is executed before each request to verify whether the authorization 
+    This is executed before each request to verify whether the authorization
     token is valid.
     If it is invalid, access is denied.
     """
     if not autenticar():
         return jsonify({"error": "No autorizado"}), 401
+
 
 def get_db_connection():
     """
@@ -51,6 +54,7 @@ def get_db_connection():
     except Exception as e:
         print("Error al conectar a la DB:", e)
         raise
+
 
 @app.route("/usuarios", methods=["GET"])
 def obtener_usuarios():
@@ -78,11 +82,12 @@ def obtener_usuarios():
 
     return jsonify(usuarios), 200
 
+
 @app.route("/metodos", methods=["GET"])
 def info_metodos():
     """
     Provide information about the HTTP methods supported by the API.
-    
+
     """
     return jsonify({
         "GET": "Obtener datos. No necesita token.",
@@ -91,11 +96,12 @@ def info_metodos():
         "DELETE": "Eliminar recurso. Requiere token Bearer."
     }), 200
 
+
 @app.route("/items", methods=["GET"])
 def obtener_items():
     """
     Fetch all items from the 'items' table and return as JSON.
-    
+
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -112,12 +118,13 @@ def obtener_items():
     conn.close()
     return jsonify(items), 200
 
+
 @app.route("/items", methods=["POST"])
 def crear_item():
     """
     Create a new item in the 'items' table.
     Expects JSON body with 'nombre' field
-    
+
     """
     nuevo_item = request.get_json()
     nombre = nuevo_item.get("nombre")
@@ -126,13 +133,16 @@ def crear_item():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO items (nombre) VALUES (%s) RETURNING id;", (nombre,))
+    cursor.execute(
+        "INSERT INTO items (nombre) VALUES (%s) RETURNING id;", (nombre,))
     nuevo_id = cursor.fetchone()[0]
     conn.commit()
 
     cursor.close()
     conn.close()
-    return jsonify({"mensaje": "Item creado", "id": nuevo_id, "nombre": nombre}), 201
+    return jsonify({"mensaje": "Item creado",
+                   "id": nuevo_id, "nombre": nombre}), 201
+
 
 @app.route("/items/<int:item_id>", methods=["PUT"])
 def actualizar_item(item_id):
@@ -147,7 +157,8 @@ def actualizar_item(item_id):
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE items SET nombre = %s WHERE id = %s RETURNING id;", (nombre, item_id))
+    cursor.execute(
+        "UPDATE items SET nombre = %s WHERE id = %s RETURNING id;", (nombre, item_id))
     actualizado = cursor.fetchone()
     conn.commit()
 
@@ -155,7 +166,8 @@ def actualizar_item(item_id):
     conn.close()
 
     if actualizado is not None:
-        return jsonify({"mensaje": "Item actualizado", "id": item_id, "nombre": nombre}), 200
+        return jsonify({"mensaje": "Item actualizado",
+                       "id": item_id, "nombre": nombre}), 200
     else:
         return jsonify({"error": "Item no encontrado"}), 404
 
@@ -179,6 +191,7 @@ def eliminar_item(item_id):
     else:
         return jsonify({"error": "Item no encontrado"}), 404
 
+
 @app.route("/rutas", methods=["GET"])
 def listar_rutas():
     """
@@ -191,6 +204,7 @@ def listar_rutas():
             "metodos": list(regla.methods)
         })
     return jsonify(rutas)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
