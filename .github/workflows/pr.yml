@@ -1,0 +1,73 @@
+# ============================================================
+# PR Pipeline - Se ejecuta cuando se crea o actualiza un PR
+# ============================================================
+# Propósito: Verificar que el código del PR está limpio y
+#            funcional ANTES de que se apruebe el merge.
+# ============================================================
+
+name: PR Pipeline
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  # ── PASO 1: Lint y validación de código Python ──
+  lint:
+    name: 🔍 Lint - Verificar calidad de código
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias + herramientas de lint
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8
+
+      - name: Ejecutar flake8 (verificar errores de sintaxis y estilo)
+        run: |
+          flake8 app.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 app.py --count --max-line-length=120 --statistics
+
+  # ── PASO 2: Construir imagen Docker ──
+  build:
+    name: 🐳 Build - Construir imagen Docker
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Construir imagen Docker (sin subir, solo verificar)
+        run: |
+          docker build -t api-con-auth:pr-${{ github.event.pull_request.number }} .
+
+  # ── PASO 3: Validar Helm Chart ──
+  helm-lint:
+    name: ⎈ Helm - Validar chart de Kubernetes
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Lint del Helm Chart (verificar sintaxis YAML)
+        run: |
+          helm lint ./api-con-auth2
+
+      - name: Template del Helm Chart (verificar que renderiza bien)
+        run: |
+          helm template test-release ./api-con-auth2
